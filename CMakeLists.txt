@@ -1,7 +1,23 @@
 cmake_minimum_required(VERSION 3.6)
-project(Client)
+set (PROJECT_NAME "Client" CXX)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-set(SOURCE_FILES main.cpp)
-add_executable(Client ${SOURCE_FILES})
+project (${PROJECT_NAME})
+set (PROJECT_SOURCE_DECLARATION_DIRECTORY ${PROJECT_SOURCE_DIR}/include)
+set (PROJECT_SOURCE_DEFINITION_DIRECTORY ${PROJECT_SOURCE_DIR}/src)
+set (MAIN_FILE ${PROJECT_SOURCE_DEFINITION_DIRECTORY}/main.cpp)
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
+
+find_package (Boost 1.53 COMPONENTS system filesystem REQUIRED)
+if (Boost_FOUND)
+    include_directories (${Boost_INCLUDE_DIR})
+endif ()
+
+include_directories(include src)
+
+file(GLOB SOURCES "src/*.cpp" "include/*.h")
+
+add_executable(${PROJECT_NAME} ${SOURCES} src/main.cpp src/ConnectionHandler.cpp include/ConnectionHandler.h)
+
+TARGET_LINK_LIBRARIES( ${PROJECT_NAME} ${Boost_LIBRARIES} )
