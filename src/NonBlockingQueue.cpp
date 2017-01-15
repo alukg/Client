@@ -15,3 +15,7 @@ void NonBlockingQueue::push(const T &item) {
     std::unique_lock<std::mutex> mlock(mutex_);
     queue_.push(item);
 }
+bool NonBlockingQueue::isEmpty() {
+    return queue_.size()==0;
+}
+

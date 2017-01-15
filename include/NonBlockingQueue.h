@@ -16,7 +16,7 @@ public:
     NonBlockingQueue();
     T pop();
     void push(const T& item);
-
+    bool isEmpty();
 };
 
 #endif //CLIENT_NONBLOCKINGQUEUE_H

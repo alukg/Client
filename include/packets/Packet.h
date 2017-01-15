@@ -17,18 +17,18 @@ public:
     short getOpCode();
 
 };
-class DATA : Packet{
+class DATA : public Packet{
 private:
     short packetSize;
     short block;
-    char data[];
+    char* data;
 public:
-    DATA(short packetSize, short block, char data[]) :Packet(3), packetSize(packetSize),block(block),data(data){};
+    DATA(short packetSize, short block, char* data) :Packet(3), packetSize(packetSize),block(block),data(data){};
     short getPacketSize();
     short getBlock();
 };
 
-class ACK : Packet {
+class ACK : public Packet {
 private:
     short block;
 
@@ -38,7 +38,7 @@ public:
 };
 
 
-class BCAST : Packet {
+class BCAST : public Packet {
 private:
     bool delOrAdd;
     string fileName;
@@ -69,7 +69,7 @@ public:
 };
 
 
-class ERROR : Packet {
+class ERROR : public Packet {
 private:
     short errorCode;
     string errorMessage;

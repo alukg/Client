@@ -15,6 +15,8 @@ private:
     boost::asio::io_service io_service_;   // Provides core I/O functionality
     tcp::socket socket_;
     NonBlockingQueue sendToServerQueue;
+    int lastPacketISent =-1;
+
 
 public:
     ConnectionHandler(std::string host, short port);
@@ -38,7 +40,7 @@ public:
 
     // Read an ascii line from the server
     // Returns false in case connection closed before a newline can be read.
-    Packet & getLine();
+    Packet * getLine();
 
     // Send an ascii line from the server
     // Returns false in case connection closed before all the data is sent.
