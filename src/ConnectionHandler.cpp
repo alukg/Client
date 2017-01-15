@@ -10,7 +10,7 @@ using std::endl;
 using std::string;
 
 ConnectionHandler::ConnectionHandler(string host, short port) : host_(host), port_(port), io_service_(),
-                                                                socket_(io_service_), nonBlockingQueue() {}
+                                                                socket_(io_service_), sendToServerQueue() {}
 
 ConnectionHandler::~ConnectionHandler() {
     close();
@@ -34,7 +34,25 @@ bool ConnectionHandler::connect() {
 }
 
 void ConnectionHandler::run() {
+    while(true){
+        char* function = sendToServerQueue.pop();
+        if(function != nullptr){
+            if (!sendBytes(function)) {
+                std::cout << "Disconnected. Exiting...\n" << std::endl;
+                break;
+            }
+        }
+        Packet& packet = getLine();
+        if (packet == nullptr) {
+            std::cout << "Disconnected. Exiting...\n" << std::endl;
+            break;
+        }
 
+        if (answer == "bye") {
+            std::cout << "Exiting...\n" << std::endl;
+            break;
+        }
+    }
 }
 
 bool ConnectionHandler::getBytes(char bytes[], unsigned int bytesToRead) {
@@ -97,15 +115,8 @@ Packet & ConnectionHandler::getLine() {
     return true;
 }
 
-bool ConnectionHandler::sendLine(std::string &line) {
-    return sendFrameAscii(line, '\n');
-}
+void ConnectionHandler::encode(std::string &line){
 
-
-bool ConnectionHandler::sendFrameAscii(const std::string &frame, char delimiter) {
-    bool result = sendBytes(frame.c_str(), frame.length());
-    if (!result) return false;
-    return sendBytes(&delimiter, 1);
 }
 
 // Close down the connection properly.
