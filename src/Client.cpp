@@ -1,10 +1,8 @@
 #include <stdlib.h>
 #include <boost/thread.hpp>
+#include "Client.h"
 #include "ConnectionHandler.h"
 
-/**
-* This code assumes that the server replies the exact text the client sent it (as opposed to the practical session example)
-*/
 int main (int argc, char *argv[]) {
     if (argc < 3) {
         std::cerr << "Usage: " << argv[0] << " host port" << std::endl << std::endl;
@@ -19,20 +17,25 @@ int main (int argc, char *argv[]) {
         return 1;
     }
 
-    boost::thread th1(&ConnectionHandler::run);
+    boost::thread serverThread(&ConnectionHandler::run);
 
-    //From here we will see the rest of the ehco client implementation:
-    while (1) {
-        const short bufsize = 1024;
-        char buf[bufsize];
-        std::cin.getline(buf, bufsize);
-        std::string line(buf);
-        int len=line.length();
+    while (true) {
+        std::string line;
+        std::getline (std::cin,line);
+        string ans = Client::insertToQueue(line);
+        if(ans.compare("Wrong")){
+            std::cout << "Wrong function\n" << std::endl;
+        }
+        else if (ans.compare("OK")){
+            continue;
+        } else
+            std::cout << ans + "\n" << std::endl;
+
         if (!connectionHandler.sendLine(line)) {
             std::cout << "Disconnected. Exiting...\n" << std::endl;
             break;
         }
-        // connectionHandler.sendLine(line) appends '\n' to the message. Therefor we send len+1 bytes.
+
         std::cout << "Sent " << len+1 << " bytes to server" << std::endl;
 
 
@@ -59,4 +62,35 @@ int main (int argc, char *argv[]) {
         }
     }
     return 0;
+}
+
+static string Client::insertToQueue(string line) {
+    if(line == nullptr || line == "") return "Wrong";
+    string delimiter = " ";
+    string functionName = line.substr(0, line.find(delimiter));
+    std::transform(functionName.begin(), functionName.end(), functionName.begin(), ::toupper);
+
+    switch(functionName) {
+        case 'RRQ' :
+
+            break;
+        case 'WRQ' :
+
+            break;
+        case 'DIRQ' :
+
+            break;
+        case 'LOGRQ' :
+
+            break;
+        case 'DELRQ' :
+
+            break;
+        case 'DISC' :
+
+            break;
+        default :
+            return "Wrong";
+    }
+//    int playerStrategy = stoi(line.substr(line.find(delimiter) + 1, 1));
 }
