@@ -14,16 +14,19 @@ private:
     const short port_;
     boost::asio::io_service io_service_;   // Provides core I/O functionality
     tcp::socket socket_;
-    NonBlockingQueue nonBlockingQueue;
+    NonBlockingQueue sendToServerQueue;
 
 public:
     ConnectionHandler(std::string host, short port);
+
     virtual ~ConnectionHandler();
 
     // Connect to the remote machine
     bool connect();
 
     void run();
+
+    void insertToQueue(string &line);
 
     // Read a fixed number of bytes from the server - blocking.
     // Returns false in case the connection is closed before bytesToRead bytes can be read.

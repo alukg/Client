@@ -22,12 +22,9 @@ int main (int argc, char *argv[]) {
     while (true) {
         std::string line;
         std::getline (std::cin,line);
-        string ans = Client::insertToQueue(line);
-        if(ans.compare("Wrong")){
-            std::cout << "Wrong function\n" << std::endl;
-        }
-        else if (ans.compare("OK")){
-            continue;
+        string ans = Client::checkFunction(line);
+        if (ans.compare("OK")){
+            connectionHandler.insertToQueue(line);
         } else
             std::cout << ans + "\n" << std::endl;
 
@@ -36,7 +33,7 @@ int main (int argc, char *argv[]) {
             break;
         }
 
-        std::cout << "Sent " << len+1 << " bytes to server" << std::endl;
+        //std::cout << "Sent " << len+1 << " bytes to server" << std::endl;
 
 
         // We can use one of three options to read data from the server:
@@ -64,33 +61,34 @@ int main (int argc, char *argv[]) {
     return 0;
 }
 
-static string Client::insertToQueue(string line) {
-    if(line == nullptr || line == "") return "Wrong";
+static string Client::checkFunction(string &line) {
+    if(line == nullptr || line == "") return "Wrong function";
     string delimiter = " ";
     string functionName = line.substr(0, line.find(delimiter));
     std::transform(functionName.begin(), functionName.end(), functionName.begin(), ::toupper);
-
-    switch(functionName) {
-        case 'RRQ' :
-                
-            break;
-        case 'WRQ' :
-
-            break;
-        case 'DIRQ' :
-
-            break;
-        case 'LOGRQ' :
-
-            break;
-        case 'DELRQ' :
-
-            break;
-        case 'DISC' :
-
-            break;
-        default :
-            return "Wrong";
+    string file_user_name = line.substr(line.find(delimiter),line.length());;
+    if(functionName.compare("RRQ") || functionName.compare("WRQ") || functionName.compare("DELRQ")) {
+        if (file_user_name.find("0")) return "Invalid character: Filename contains 0";
+        else return "OK";
     }
-//    int playerStrategy = stoi(line.substr(line.find(delimiter) + 1, 1));
+    else if(functionName.compare("LOGRQ")) {
+        if(file_user_name.find("0")) return "Invalid character: Username contains 0";
+        else return "OK";
+    }
+    else if(functionName.compare("DISC") || functionName.compare("DIRQ")) {
+        if(trim(file_user_name) == "") return "OK";
+        else return "Wrong function";
+    } else
+        return "Wrong function";
+}
+
+static string Client::trim(const string& str)
+{
+    size_t first = str.find_first_not_of(' ');
+    if (string::npos == first)
+    {
+        return str;
+    }
+    size_t last = str.find_last_not_of(' ');
+    return str.substr(first, (last - first + 1));
 }
