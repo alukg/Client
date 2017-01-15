@@ -1,3 +1,4 @@
+#include <packets/Packet.h>
 #include "ConnectionHandler.h"
 
 using boost::asio::ip::tcp;
@@ -10,6 +11,7 @@ using std::string;
 
 ConnectionHandler::ConnectionHandler(string host, short port) : host_(host), port_(port), io_service_(),
                                                                 socket_(io_service_), nonBlockingQueue() {}
+
 ConnectionHandler::~ConnectionHandler() {
     close();
 }
@@ -31,7 +33,7 @@ bool ConnectionHandler::connect() {
     return true;
 }
 
-void ConnectionHandler::run(){
+void ConnectionHandler::run() {
 
 }
 
@@ -67,29 +69,38 @@ bool ConnectionHandler::sendBytes(const char bytes[], int bytesToWrite) {
     return true;
 }
 
-bool ConnectionHandler::getLine(std::string &line) {
-    return getFrameAscii(line, '\n');
-}
-
-bool ConnectionHandler::sendLine(std::string &line) {
-    return sendFrameAscii(line, '\n');
-}
-
-bool ConnectionHandler::getFrameAscii(std::string &frame, char delimiter) {
+Packet & ConnectionHandler::getLine() {
     char ch;
-    // Stop when we encounter the null character. 
+    string line;
+    // Stop when we encounter the null character.
     // Notice that the null character is not appended to the frame string.
     try {
-        do {
+        for (int i = 0; i < 2; i++) {
             getBytes(&ch, 1);
-            frame.append(1, ch);
-        } while (delimiter != ch);
+            line.append(1, ch);
+        }
+        short opCode = bytesToShort((char *) line.c_str());
+        switch (opCode)
+            case 3:
+                    //data
+            case 4:
+                //ack
+            case 5:
+            case 9:
+                //until 0
+
+
     } catch (std::exception &e) {
         std::cerr << "recv failed (Error: " << e.what() << ')' << std::endl;
         return false;
     }
     return true;
 }
+
+bool ConnectionHandler::sendLine(std::string &line) {
+    return sendFrameAscii(line, '\n');
+}
+
 
 bool ConnectionHandler::sendFrameAscii(const std::string &frame, char delimiter) {
     bool result = sendBytes(frame.c_str(), frame.length());
@@ -104,4 +115,16 @@ void ConnectionHandler::close() {
     } catch (...) {
         std::cout << "closing failed: connection already closed" << std::endl;
     }
+}
+
+
+short bytesToShort(char *bytesArr) {
+    short result = (short) ((bytesArr[0] & 0xff) << 8);
+    result += (short) (bytesArr[1] & 0xff);
+    return result;
+}
+
+void shortToBytes(short num, char *bytesArr) {
+    bytesArr[0] = ((num >> 8) & 0xFF);
+    bytesArr[1] = (num & 0xFF);
 }

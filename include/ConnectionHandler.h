@@ -35,7 +35,7 @@ public:
 
     // Read an ascii line from the server
     // Returns false in case connection closed before a newline can be read.
-    bool getLine(std::string& line);
+    Packet & getLine();
 
     // Send an ascii line from the server
     // Returns false in case connection closed before all the data is sent.
@@ -51,6 +51,9 @@ public:
 
     // Close down the connection properly.
     void close();
+
+    short bytesToShort(char* bytesArr);
+    void shortToBytes(short num, char* bytesArr);
 
 }; //class ConnectionHandler
 

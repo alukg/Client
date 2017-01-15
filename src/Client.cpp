@@ -72,7 +72,7 @@ static string Client::insertToQueue(string line) {
 
     switch(functionName) {
         case 'RRQ' :
-
+                
             break;
         case 'WRQ' :
 
