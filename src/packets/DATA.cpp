@@ -8,5 +8,10 @@ short DATA::getBlock() {
     return this->block;
 }
 short DATA::getPacketSize() {
-    return this->getPacketSize();
+    return this->packetSize;
+}
+char* DATA::getData() {
+    char ans[sizeof(data)];
+    std::copy(data, data+sizeof(data), ans);
+    return ans;
 }

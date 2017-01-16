@@ -38,17 +38,17 @@ public:
     // Returns false in case connection closed before a newline can be read.
     Packet & getLine();
 
-    // Send an ascii line from the server
-    // Returns false in case connection closed before all the data is sent.
-    bool sendLine(std::string& line);
+    char* encode(Packet &packet);
 
-    void encode(std::string &line);
+    void insertToQueue(char* message);
 
     // Close down the connection properly.
     void close();
 
     short bytesToShort(char* bytesArr);
     void shortToBytes(short num, char* bytesArr);
+
+    char* connectArrays(char *firstArr, char *secondArr);
 
 }; //class ConnectionHandler
 

@@ -115,8 +115,53 @@ Packet & ConnectionHandler::getLine() {
     return true;
 }
 
-void ConnectionHandler::encode(std::string &line){
+char* ConnectionHandler::encode(Packet &packet){
+    char result[2];
+    shortToBytes(packet.getOpCode(),result);
 
+    char blockArr[2];
+    char packetSize[2];
+    char fileNameWithZero[1024];
+    char userNameWithZero[1024];
+    char* ans;
+
+    switch (packet.getOpCode()){
+        case 1:
+            RRQ RRQPack = (RRQ&)packet;
+            strcpy(fileNameWithZero, (RRQPack.getFileName() + "0").c_str());
+            return connectArrays(result,fileNameWithZero);
+        case 2:
+            WRQ WRQPack = (WRQ&)packet;
+            strcpy(fileNameWithZero, (WRQPack.getFileName() + "0").c_str());
+            return connectArrays(result,fileNameWithZero);
+        case 3:
+            DATA DATAPack = (DATA&)packet;
+            shortToBytes(DATAPack.getBlock(),blockArr);
+            shortToBytes(DATAPack.getPacketSize(),packetSize);
+            ans = connectArrays(result,blockArr);
+            ans = connectArrays(ans,packetSize);
+            return connectArrays(ans,DATAPack.getData());
+        case 4:
+            ACK ACKPack = (ACK&)packet;
+            shortToBytes(ACKPack.getBlock(),blockArr);
+            return connectArrays(result,blockArr);
+        case 7:
+            LOGRQ LOGRQPack = (LOGRQ&)packet;
+            strcpy(userNameWithZero, (LOGRQPack.getUserName() + "0").c_str());
+            return connectArrays(result,userNameWithZero);
+        case 8:
+            DELRQ DELRQPack = (DELRQ&)packet;
+            strcpy(fileNameWithZero, (DELRQPack.getFileName() + "0").c_str());
+            return connectArrays(result,fileNameWithZero);
+        case 6: //DIRQ
+        case 10: //DISC
+            return result;
+    }
+
+}
+
+void ConnectionHandler::insertToQueue(char* message){
+    sendToServerQueue.push(message);
 }
 
 // Close down the connection properly.
@@ -129,13 +174,17 @@ void ConnectionHandler::close() {
 }
 
 
-short bytesToShort(char *bytesArr) {
+short ConnectionHandler::bytesToShort(char *bytesArr) {
     short result = (short) ((bytesArr[0] & 0xff) << 8);
     result += (short) (bytesArr[1] & 0xff);
     return result;
 }
 
-void shortToBytes(short num, char *bytesArr) {
+void ConnectionHandler::shortToBytes(short num, char *bytesArr) {
     bytesArr[0] = ((num >> 8) & 0xFF);
     bytesArr[1] = (num & 0xFF);
+}
+
+char* ConnectionHandler::connectArrays(char *firstArr, char *secondArr) {
+
 }
