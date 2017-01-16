@@ -26,6 +26,7 @@ public:
     DATA(short packetSize, short block, char* data) :Packet(3), packetSize(packetSize),block(block),data(data){};
     short getPacketSize();
     short getBlock();
+    char* getData();
 };
 
 class ACK : public Packet {
@@ -49,7 +50,7 @@ public:
     string getFileName();
 };
 
-class DELRQ : Packet {
+class DELRQ : public Packet {
 private:
     string FileName;
 
@@ -58,12 +59,12 @@ public:
     string getFileName();
 };
 
-class DIRQ : Packet {
+class DIRQ : public Packet {
 public:
     DIRQ(): Packet(6) {};
 };
 
-class DISC : Packet {
+class DISC : public Packet {
 public:
     DISC(): Packet(10) {};
 };
@@ -80,7 +81,7 @@ public:
     string getErrorMessage();
 };
 
-class LOGRQ : Packet {
+class LOGRQ : public Packet {
 private:
     string userName;
 
@@ -89,7 +90,7 @@ public:
     string getUserName();
 };
 
-class RRQ : Packet {
+class RRQ : public Packet {
 private:
     string FileName;
 
@@ -98,7 +99,7 @@ public:
     string getFileName();
 };
 
-class WRQ : Packet {
+class WRQ : public Packet {
 private:
     string FileName;
 

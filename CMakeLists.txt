@@ -16,7 +16,7 @@ endif ()
 
 include_directories(include src)
 
-file(GLOB SOURCES "src/*.cpp" "include/*.h")
+file(GLOB SOURCES "src/*.cpp" "include/packets/*.h" "src/packets/*.cpp" "include/*.h")
 
 add_executable(${PROJECT_NAME} ${SOURCES} src/Client.cpp src/ConnectionHandler.cpp include/ConnectionHandler.h src/NonBlockingQueue.cpp include/NonBlockingQueue.h include/Client.h)
 
