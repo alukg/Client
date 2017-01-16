@@ -4,18 +4,18 @@
 #include <mutex>
 #include <queue>
 #include <condition_variable>
+#include <packets/Packet.h>
 
-template <typename T>
 class NonBlockingQueue {
 
 private:
-    std::queue <T> queue_;
+    std::queue <Packet> queue_;
     std::mutex mutex_;
 
 public:
     NonBlockingQueue();
-    T pop();
-    void push(const T& item);
+    Packet pop();
+    void push(const Packet& item);
     bool isEmpty();
 };
 

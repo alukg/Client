@@ -15,24 +15,24 @@ int main(int argc, char *argv[]) {
         std::cerr << "Cannot connect to " << host << ":" << port << std::endl;
         return 1;
     }
-
-    boost::thread serverThread(&ConnectionHandler::run);
+    cout<< "connedtion succeed" << endl;
+    boost::thread serverThread(boost::bind(&ConnectionHandler::run,&connectionHandler));
 
     while (true) {
         std::string line;
         std::getline(std::cin, line);
         string ans = Client::checkFunction(line);
         if (ans.compare("OK")) {
-            char *message = connectionHandler.encode(Client::stringToPacket(line));
-            connectionHandler.insertToQueue(message);
+            Packet packet = Client::stringToPacket(line);
+            connectionHandler.insertToQueue(packet);
         } else
             std::cout << ans + "\n" << std::endl;
     }
     return 0;
 }
 
-static string Client::checkFunction(string &line) {
-    if (line == nullptr || line == "") return "Wrong function";
+string Client::checkFunction(string &line) {
+    if (line == "") return "Wrong function";
     string delimiter = " ";
     string functionName = line.substr(0, line.find(delimiter));
     std::transform(functionName.begin(), functionName.end(), functionName.begin(), ::toupper);
@@ -50,7 +50,7 @@ static string Client::checkFunction(string &line) {
         return "Wrong function";
 }
 
-static string Client::trim(const string &str) {
+string Client::trim(const string &str) {
     size_t first = str.find_first_not_of(' ');
     if (string::npos == first) {
         return str;
@@ -59,22 +59,22 @@ static string Client::trim(const string &str) {
     return str.substr(first, (last - first + 1));
 }
 
-static Packet* Client::stringToPacket(string &line) {
+Packet Client::stringToPacket(string &line) {
     string delimiter = " ";
     string functionName = line.substr(0, line.find(delimiter));
     std::transform(functionName.begin(), functionName.end(), functionName.begin(), ::toupper);
     string file_user_name = line.substr(line.find(delimiter), line.length());;
     if (functionName.compare("RRQ")) {
-        return new RRQ(file_user_name);
+        return RRQ(file_user_name);
     } else if (functionName.compare("WRQ")) {
-        return new WRQ(file_user_name);
+        return WRQ(file_user_name);
     } else if (functionName.compare("DELRQ")) {
-        return new DELRQ(file_user_name);
+        return DELRQ(file_user_name);
     } else if (functionName.compare("LOGRQ")) {
-        return new LOGRQ(file_user_name);
+        return LOGRQ(file_user_name);
     } else if (functionName.compare("DISC")) {
-        return new DISC();
+        return DISC();
     } else { //DIRQ
-        return new DIRQ();
+        return DIRQ();
     }
 }

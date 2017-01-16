@@ -5,6 +5,6 @@
 
 #include <packets/Packet.h>
 
-string RRQ::getFileName() {
+string WRQ::getFileName() {
     return this->FileName;
 }
