@@ -14,9 +14,8 @@ private:
     const short port_;
     boost::asio::io_service io_service_;   // Provides core I/O functionality
     tcp::socket socket_;
-    NonBlockingQueue sendToServerQueue;
     int lastPacketISent =-1;
-
+    NonBlockingQueue<char*> sendToServerQueue;
 
 public:
     ConnectionHandler(std::string host, short port);
@@ -27,8 +26,6 @@ public:
     bool connect();
 
     void run();
-
-    void insertToQueue(string &line);
 
     // Read a fixed number of bytes from the server - blocking.
     // Returns false in case the connection is closed before bytesToRead bytes can be read.
@@ -46,13 +43,7 @@ public:
     // Returns false in case connection closed before all the data is sent.
     bool sendLine(std::string& line);
 
-    // Get Ascii data from the server until the delimiter character
-    // Returns false in case connection closed before null can be read.
-    bool getFrameAscii(std::string& frame, char delimiter);
-
-    // Send a message to the remote host.
-    // Returns false in case connection is closed before all the data is sent.
-    bool sendFrameAscii(const std::string& frame, char delimiter);
+    void encode(std::string &line);
 
     // Close down the connection properly.
     void close();

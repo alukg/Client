@@ -35,15 +35,24 @@ bool ConnectionHandler::connect() {
 
 void ConnectionHandler::run() {
     while(true){
-        if(lastPacketISent == -1){
-            char * function = sendToServerQueue.pop();
-            if(function!=nullptr)
-                sendsizeof(function)
-
+        char* function = sendToServerQueue.pop();
+        if(function != nullptr){
+            if (!sendBytes(function)) {
+                std::cout << "Disconnected. Exiting...\n" << std::endl;
+                break;
+            }
+        }
+        Packet& packet = getLine();
+        if (packet == nullptr) {
+            std::cout << "Disconnected. Exiting...\n" << std::endl;
+            break;
         }
 
+        if (answer == "bye") {
+            std::cout << "Exiting...\n" << std::endl;
+            break;
+        }
     }
-
 }
 
 bool ConnectionHandler::getBytes(char bytes[], unsigned int bytesToRead) {
@@ -125,6 +134,9 @@ Packet *ConnectionHandler::getLine() {
     return nullptr;
 }
 
+void ConnectionHandler::encode(std::string &line){
+
+}
 
 // Close down the connection properly.
 void ConnectionHandler::close() {
