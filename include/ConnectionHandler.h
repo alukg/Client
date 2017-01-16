@@ -14,12 +14,15 @@ private:
     const short port_;
     boost::asio::io_service io_service_;   // Provides core I/O functionality
     tcp::socket socket_;
-    int lastPacketISent =-1;
+    Packet *lastPacketISent = nullptr;
     NonBlockingQueue<char*> sendToServerQueue;
+    queue<DATA> dataQueue;
+    char* readFileBytes(const char *name);
+    void addDatatoQueue(char * data);
 
 public:
     ConnectionHandler(std::string host, short port);
-
+    Packet process(Packet * packet);
     virtual ~ConnectionHandler();
 
     // Connect to the remote machine
