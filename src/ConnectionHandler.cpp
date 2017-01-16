@@ -87,32 +87,51 @@ bool ConnectionHandler::sendBytes(const char bytes[], int bytesToWrite) {
     return true;
 }
 
-Packet & ConnectionHandler::getLine() {
+Packet *ConnectionHandler::getLine() {
+    Packet *pck;
     char ch;
     string line;
     // Stop when we encounter the null character.
     // Notice that the null character is not appended to the frame string.
     try {
-        for (int i = 0; i < 2; i++) {
-            getBytes(&ch, 1);
-            line.append(1, ch);
-        }
+            getBytes(&ch, 2);
+            line.append(2, ch);
         short opCode = bytesToShort((char *) line.c_str());
-        switch (opCode)
+        line.clear();
+        switch (opCode) {
             case 3:
-                    //data
+                getBytes(&ch, 2);
+                line.append(2, ch);
+                short packetSize = bytesToShort((char *) line.substr(0,2).c_str());
+                getBytes((char *)line.c_str(),packetSize+2);
+                pck = new DATA(packetSize,bytesToShort((char *) line.substr(2,4).c_str()),(char *)line.substr(4,line.length()).c_str());
+                return pck;
             case 4:
-                //ack
+                getBytes(&ch, 2);
+                line.append(2, ch);
+                pck = new ACK(bytesToShort((char *) line.c_str()));
+                return pck;
             case 5:
             case 9:
-                //until 0
-
+                do {
+                    getBytes(&ch, 1);
+                    line.append(1, ch);
+                } while (ch != '0');
+                if(opCode ==5) {
+                    pck = new ERROR(bytesToShort((char *) line.substr(0, 2).c_str()),
+                                            line.substr(2, line.length()));
+                    return pck;
+                } else{
+                    pck = new BCAST(bytesToShort((char *) line.substr(0, 1).c_str()),
+                                            line.substr(1, line.length()));
+                    return pck;
+                }
+        }
 
     } catch (std::exception &e) {
         std::cerr << "recv failed (Error: " << e.what() << ')' << std::endl;
-        return false;
     }
-    return true;
+    return nullptr;
 }
 
 char* ConnectionHandler::encode(Packet &packet){

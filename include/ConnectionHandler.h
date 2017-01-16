@@ -14,6 +14,7 @@ private:
     const short port_;
     boost::asio::io_service io_service_;   // Provides core I/O functionality
     tcp::socket socket_;
+    int lastPacketISent =-1;
     NonBlockingQueue<char*> sendToServerQueue;
 
 public:
@@ -36,7 +37,7 @@ public:
 
     // Read an ascii line from the server
     // Returns false in case connection closed before a newline can be read.
-    Packet & getLine();
+    Packet * getLine();
 
     char* encode(Packet &packet);
 
