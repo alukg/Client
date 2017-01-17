@@ -8,3 +8,7 @@ short ACK::getBlock() {
     return this->block;
 }
 
+int ACK::getSize() {
+    return 4;
+}
+

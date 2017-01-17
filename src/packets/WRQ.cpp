@@ -6,5 +6,9 @@
 #include <packets/Packet.h>
 
 string WRQ::getFileName() {
-    return this->FileName;
+    return this->fileName;
+}
+
+int WRQ::getSize() {
+    return 2+fileName.length()+1;
 }

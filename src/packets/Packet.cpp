@@ -7,3 +7,7 @@
 short Packet::getOpCode() {
     return this->opCode;
 }
+
+int Packet::getSize(){
+    return 2;
+}

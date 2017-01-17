@@ -11,7 +11,10 @@ short DATA::getPacketSize() {
     return this->packetSize;
 }
 char* DATA::getData() {
-    char ans[sizeof(data)];
-    std::copy(data, data+sizeof(data), ans);
+    char ans[packetSize];
+    std::copy(data, data+packetSize, ans);
     return ans;
+}
+int DATA::getSize() {
+    return 2+2+2+packetSize;
 }

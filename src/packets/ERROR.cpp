@@ -11,3 +11,7 @@ short ERROR::getErrorCode() {
 string ERROR::getErrorMessage() {
     return this->errorMessage;
 }
+
+int ERROR::getSize() {
+    return 2+2+errorMessage.length()+1;
+}

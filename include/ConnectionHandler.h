@@ -4,7 +4,7 @@
 #include <string>
 #include <iostream>
 #include <boost/asio.hpp>
-#include "NonBlockingQueue.h"
+#include <queue>
 
 using boost::asio::ip::tcp;
 
@@ -14,16 +14,15 @@ private:
     const short port_;
     boost::asio::io_service io_service_;   // Provides core I/O functionality
     tcp::socket socket_;
-    NonBlockingQueue sendToServerQueue;
-    queue<DATA> dataForSendQueue;
+    queue<DATA*> dataForSendQueue;
     Packet* lastPacketISent;
     char* gettingData;
+    int gettingDataSize;
     char* readFileBytes(const char *name);
     void convertDataToPackets(char *data);
 
 public:
     ConnectionHandler(std::string host, short port);
-    ConnectionHandler(const ConnectionHandler& old);
     Packet* process(Packet &packet);
     virtual ~ConnectionHandler();
 
@@ -44,11 +43,9 @@ public:
     // Returns false in case connection closed before a newline can be read.
     Packet * getLine();
 
-    char* encode(Packet &packet);
+    void encode(Packet* packet, char* encodedArr);
 
-    void insertToQueue(Packet &message);
-
-    bool sendPacket(Packet packet);
+    bool sendPacket(Packet* packet, bool save);
 
     // Close down the connection properly.
     void close();
@@ -56,7 +53,7 @@ public:
     short bytesToShort(char* bytesArr);
     void shortToBytes(short num, char* bytesArr);
 
-    char* connectArrays(char *firstArr, char *secondArr);
+    void connectArrays(char *firstArr, int firstLength, char *secondArr, int secondLength, char *connected);
 
 }; //class ConnectionHandler
 

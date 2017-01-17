@@ -10,3 +10,7 @@ bool BCAST::isDelOrAdd() {
 string BCAST::getFileName() {
     return this->fileName;
 }
+
+int BCAST::getSize() {
+    return 2+1+fileName.length()+1;
+}

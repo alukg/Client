@@ -8,3 +8,7 @@
 string LOGRQ::getUserName() {
     return this->userName;
 }
+
+int LOGRQ::getSize() {
+    return 2+userName.length()+1;
+}

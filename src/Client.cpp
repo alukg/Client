@@ -15,16 +15,19 @@ int main(int argc, char *argv[]) {
         std::cerr << "Cannot connect to " << host << ":" << port << std::endl;
         return 1;
     }
-    cout<< "connedtion succeed" << endl;
-    boost::thread serverThread(boost::bind(&ConnectionHandler::run,&connectionHandler));
+    cout << "connedtion succeed" << endl;
+    boost::thread serverThread(boost::bind(&ConnectionHandler::run, &connectionHandler));
 
     while (true) {
         std::string line;
         std::getline(std::cin, line);
         string ans = Client::checkFunction(line);
-        if (ans.compare("OK")) {
-            Packet packet = Client::stringToPacket(line);
-            connectionHandler.insertToQueue(packet);
+        if (ans.compare("OK") == 0) {
+            Packet *packet = Client::stringToPacket(line);
+            if (!connectionHandler.sendPacket(packet, true)) {
+                std::cout << "Disconnected. Exiting...\n" << std::endl;
+                break;
+            }
         } else
             std::cout << ans + "\n" << std::endl;
     }
@@ -36,15 +39,21 @@ string Client::checkFunction(string &line) {
     string delimiter = " ";
     string functionName = line.substr(0, line.find(delimiter));
     std::transform(functionName.begin(), functionName.end(), functionName.begin(), ::toupper);
-    string file_user_name = line.substr(line.find(delimiter), line.length());;
-    if (functionName.compare("RRQ") || functionName.compare("WRQ") || functionName.compare("DELRQ")) {
-        if (file_user_name.find("0")) return "Invalid character: Filename contains 0";
+    string file_user_name = "";
+    if (functionName.length() < line.length()) {
+        file_user_name = line.substr(functionName.length(), line.length());
+        file_user_name = trim(file_user_name);
+    }
+    if (functionName.compare("RRQ") == 0 || functionName.compare("WRQ") == 0 || functionName.compare("DELRQ") == 0) {
+        if (file_user_name.find("0") != std::string::npos) return "Invalid character: Filename contains 0";
+        else if (file_user_name == "") return "No file name entered.";
         else return "OK";
-    } else if (functionName.compare("LOGRQ")) {
-        if (file_user_name.find("0")) return "Invalid character: Username contains 0";
+    } else if (functionName.compare("LOGRQ") == 0) {
+        if (file_user_name.find("0") != std::string::npos) return "Invalid character: Username contains 0";
+        else if (file_user_name == "") return "No username entered.";
         else return "OK";
-    } else if (functionName.compare("DISC") || functionName.compare("DIRQ")) {
-        if (trim(file_user_name) == "") return "OK";
+    } else if (functionName.compare("DISC") == 0 || functionName.compare("DIRQ") == 0) {
+        if (file_user_name == "") return "OK";
         else return "Wrong function";
     } else
         return "Wrong function";
@@ -59,22 +68,26 @@ string Client::trim(const string &str) {
     return str.substr(first, (last - first + 1));
 }
 
-Packet Client::stringToPacket(string &line) {
+Packet *Client::stringToPacket(string &line) {
     string delimiter = " ";
     string functionName = line.substr(0, line.find(delimiter));
     std::transform(functionName.begin(), functionName.end(), functionName.begin(), ::toupper);
-    string file_user_name = line.substr(line.find(delimiter), line.length());;
-    if (functionName.compare("RRQ")) {
-        return RRQ(file_user_name);
-    } else if (functionName.compare("WRQ")) {
-        return WRQ(file_user_name);
-    } else if (functionName.compare("DELRQ")) {
-        return DELRQ(file_user_name);
-    } else if (functionName.compare("LOGRQ")) {
-        return LOGRQ(file_user_name);
-    } else if (functionName.compare("DISC")) {
-        return DISC();
+    string file_user_name = "";
+    if (functionName.length() < line.length()) {
+        file_user_name = line.substr(functionName.length(), line.length());
+        file_user_name = trim(file_user_name);
+    }
+    if (functionName.compare("RRQ") == 0) {
+        return new RRQ(file_user_name);
+    } else if (functionName.compare("WRQ") == 0) {
+        return new WRQ(file_user_name);
+    } else if (functionName.compare("DELRQ") == 0) {
+        return new DELRQ(file_user_name);
+    } else if (functionName.compare("LOGRQ") == 0) {
+        return new LOGRQ(file_user_name);
+    } else if (functionName.compare("DISC") == 0) {
+        return new DISC();
     } else { //DIRQ
-        return DIRQ();
+        return new DIRQ();
     }
 }

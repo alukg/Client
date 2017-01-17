@@ -11,7 +11,7 @@ private:
     static string trim(const string& str);
 public:
     static string checkFunction(string &line);
-    static Packet stringToPacket(string &line);
+    static Packet* stringToPacket(string &line);
 };
 
 #endif //CLIENT_CLIENT_H
