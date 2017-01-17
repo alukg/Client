@@ -1,5 +1,6 @@
 #include <packets/Packet.h>
 #include <fstream>
+#include <boost/algorithm/string/replace.hpp>
 
 #include "ConnectionHandler.h"
 
@@ -12,7 +13,7 @@ using std::endl;
 using std::string;
 
 ConnectionHandler::ConnectionHandler(string host, short port) : host_(host), port_(port), io_service_(),
-                                                                socket_(io_service_), dataForSendQueue(),
+                                                                socket_(io_service_), dataForSendQueue(), shouldTerminate(false),
                                                                 lastPacketISent(nullptr) {}
 
 ConnectionHandler::~ConnectionHandler() {
@@ -37,7 +38,7 @@ bool ConnectionHandler::connect() {
 }
 
 void ConnectionHandler::run() {
-    while (true) {
+    while (!shouldTerminate) {
         Packet *packet = getLine();
         if (packet != nullptr) {
             Packet *response = process(*packet);
@@ -66,7 +67,7 @@ bool ConnectionHandler::getBytes(char bytes[], unsigned int bytesToRead) {
     return true;
 }
 
-bool ConnectionHandler::sendPacket(Packet* packet, bool save) {
+bool ConnectionHandler::sendPacket(Packet *packet, bool save) {
     if (save)
         lastPacketISent = packet;
     char encodedArr[1024];
@@ -94,7 +95,7 @@ Packet *ConnectionHandler::getLine() {
     char ch;
     string line;
     try {
-        for( int a = 1; a <= 2; a++ ) {
+        for (int a = 1; a <= 2; a++) {
             getBytes(&ch, 1);
             line.append(1, ch);
         }
@@ -103,19 +104,19 @@ Packet *ConnectionHandler::getLine() {
         short packetSize;
         switch (opCode) {
             case 3:
-                for( int a = 1; a <= 2; a++ ) {
+                for (int a = 1; a <= 2; a++) {
                     getBytes(&ch, 1);
                     line.append(1, ch);
                 }
                 packetSize = bytesToShort((char *) line.substr(0, 2).c_str());
-                for( int a = 1; a <= packetSize + 2; a++ ) {
+                for (int a = 1; a <= packetSize + 2; a++) {
                     getBytes(&ch, 1);
                     line.append(1, ch);
                 }
                 return new DATA(packetSize, bytesToShort((char *) line.substr(2, 4).c_str()),
-                                (char *) line.substr(4, line.length()).c_str());
+                                line.substr(4, line.length()));
             case 4:
-                for( int a = 1; a <= 2; a++ ) {
+                for (int a = 1; a <= 2; a++) {
                     getBytes(&ch, 1);
                     line.append(1, ch);
                 }
@@ -124,7 +125,8 @@ Packet *ConnectionHandler::getLine() {
             case 9:
                 do {
                     getBytes(&ch, 1);
-                    line.append(1, ch);
+                    if (ch != '0')
+                        line.append(1, ch);
                 } while (ch != '0');
                 if (opCode == 5) {
                     return new ERROR(bytesToShort((char *) line.substr(0, 2).c_str()),
@@ -140,7 +142,7 @@ Packet *ConnectionHandler::getLine() {
     return nullptr;
 }
 
-void ConnectionHandler::encode(Packet* packet, char *encodedArr) {
+void ConnectionHandler::encode(Packet *packet, char *encodedArr) {
     char *p;
     char result[2];
     p = result;
@@ -154,32 +156,32 @@ void ConnectionHandler::encode(Packet* packet, char *encodedArr) {
     short opCode = packet->getOpCode();
 
     if (opCode == 1) {
-        RRQ* RRQPack = (RRQ*) packet;
+        RRQ *RRQPack = (RRQ *) packet;
         strcpy(fileNameWithZero, (RRQPack->getFileName() + "0").c_str());
         connectArrays(result, 2, fileNameWithZero, 512, encodedArr);
     } else if (opCode == 2) {
-        WRQ* WRQPack = (WRQ*) packet;
+        WRQ *WRQPack = (WRQ *) packet;
         strcpy(fileNameWithZero, (WRQPack->getFileName() + "0").c_str());
         connectArrays(result, 2, fileNameWithZero, 512, encodedArr);
     } else if (opCode == 3) {
-        DATA* DATAPack = (DATA*) packet;
+        DATA *DATAPack = (DATA *) packet;
         shortToBytes(DATAPack->getBlock(), blockArr);
         shortToBytes(DATAPack->getPacketSize(), packetSize);
         char temp[4];
         connectArrays(result, 2, blockArr, 2, temp);
         char temp2[6];
         connectArrays(temp, 4, packetSize, 2, temp2);
-        connectArrays(temp2, 6, DATAPack->getData(), DATAPack->getPacketSize(), encodedArr);
+        connectArrays(temp2, 6, (char *) DATAPack->getData().c_str(), DATAPack->getPacketSize(), encodedArr);
     } else if (opCode == 4) {
-        ACK* ACKPack = (ACK*) packet;
+        ACK *ACKPack = (ACK *) packet;
         shortToBytes(ACKPack->getBlock(), blockArr);
         connectArrays(result, 2, blockArr, 2, encodedArr);
     } else if (opCode == 7) {
-        LOGRQ* LOGRQPack = (LOGRQ*) packet;
+        LOGRQ *LOGRQPack = (LOGRQ *) packet;
         strcpy(userNameWithZero, (LOGRQPack->getUserName() + "0").c_str());
         connectArrays(result, 2, userNameWithZero, 512, encodedArr);
     } else if (opCode == 8) {
-        DELRQ* DELRQPack = (DELRQ*) packet;
+        DELRQ *DELRQPack = (DELRQ *) packet;
         strcpy(fileNameWithZero, (DELRQPack->getFileName() + "0").c_str());
         connectArrays(result, 2, fileNameWithZero, 512, encodedArr);
     } else { //DIRQ and DISC
@@ -199,14 +201,14 @@ Packet *ConnectionHandler::process(Packet &packet) {
                     delete lastPacketISent;
                     lastPacketISent = nullptr;
                 } else {
-                    DATA* dataPacket = dataForSendQueue.front();
+                    DATA *dataPacket = dataForSendQueue.front();
                     dataForSendQueue.pop();
                     return dataPacket;
                 }
             } else { // ACK 0, read the file and start send
                 char *data = readFileBytes((char *) wrq.getFileName().c_str());
                 convertDataToPackets(data);
-                DATA* dataPacket = dataForSendQueue.front();
+                DATA *dataPacket = dataForSendQueue.front();
                 dataForSendQueue.pop();
                 return dataPacket;
             }
@@ -221,13 +223,17 @@ Packet *ConnectionHandler::process(Packet &packet) {
             gettingData = data.getData();
             gettingDataSize = data.getPacketSize();
         } else {
-            char connected[gettingDataSize+data.getPacketSize()];
-            connectArrays(gettingData,gettingDataSize, data.getData(),data.getPacketSize(),connected);
-            gettingData = connected;
+            gettingData = gettingData + data.getData();
         }
         if (data.getPacketSize() < 512) { // if it's the last
+            char *result = (char *) gettingData.c_str();
             if (lastPacketISent->getOpCode() == 6) { // DIRQ
-                printf("%.*s\n", gettingDataSize, gettingData);
+                for (int i = 0; i < gettingDataSize; i++) {
+                    if (*(result + i) == '\0')
+                        cout << endl;
+                    else
+                        cout << *(result + i);
+                }
             }
             if (lastPacketISent->getOpCode() == 1) { // RRQ
                 std::ofstream file(((RRQ &) (*lastPacketISent)).getFileName());
@@ -263,6 +269,7 @@ Packet *ConnectionHandler::process(Packet &packet) {
 void ConnectionHandler::close() {
     try {
         socket_.close();
+
     } catch (...) {
         std::cout << "closing failed: connection already closed" << std::endl;
     }

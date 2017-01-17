@@ -16,8 +16,9 @@ private:
     tcp::socket socket_;
     queue<DATA*> dataForSendQueue;
     Packet* lastPacketISent;
-    char* gettingData;
+    string gettingData;
     int gettingDataSize;
+    bool shouldTerminate;
     char* readFileBytes(const char *name);
     void convertDataToPackets(char *data);
 

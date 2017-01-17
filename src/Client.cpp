@@ -28,9 +28,12 @@ int main(int argc, char *argv[]) {
                 std::cout << "Disconnected. Exiting...\n" << std::endl;
                 break;
             }
+            if(packet->getOpCode()==10)
+                break;
         } else
             std::cout << ans + "\n" << std::endl;
     }
+    serverThread.join();
     return 0;
 }
 
