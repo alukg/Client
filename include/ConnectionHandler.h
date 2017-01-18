@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <boost/asio.hpp>
+#include <boost/thread/thread.hpp>
 #include <queue>
 
 using boost::asio::ip::tcp;
@@ -16,11 +17,11 @@ private:
     tcp::socket socket_;
     queue<DATA*> dataForSendQueue;
     Packet* lastPacketISent;
-    string gettingData;
+    char* gettingData = nullptr;
     int gettingDataSize;
     bool shouldTerminate;
-    char* readFileBytes(const char *name);
-    void convertDataToPackets(char *data);
+    char* readFileBytes(char const* filename, int &arrSize);
+    void convertDataToPackets(char *data, int len);
 
 public:
     ConnectionHandler(std::string host, short port);

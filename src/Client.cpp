@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
         std::cerr << "Cannot connect to " << host << ":" << port << std::endl;
         return 1;
     }
-    cout << "connedtion succeed" << endl;
+    cout << "connection succeed" << endl;
     boost::thread serverThread(boost::bind(&ConnectionHandler::run, &connectionHandler));
 
     while (true) {

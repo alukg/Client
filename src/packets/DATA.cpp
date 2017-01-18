@@ -4,13 +4,17 @@
 
 #include <packets/Packet.h>
 
+DATA::~DATA() {
+    delete data;
+}
+
 short DATA::getBlock() {
     return this->block;
 }
 short DATA::getPacketSize() {
     return this->packetSize;
 }
-string DATA::getData() {
+char* DATA::getData() {
     return data;
 }
 int DATA::getSize() {

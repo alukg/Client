@@ -22,12 +22,13 @@ class DATA : public Packet{
 private:
     short packetSize;
     short block;
-    string data;
+    char* data;
 public:
-    DATA(short packetSize, short block, string data) :Packet(3), packetSize(packetSize),block(block),data(data){};
+    DATA(short packetSize, short block, char* data) :Packet(3), packetSize(packetSize),block(block),data(data){};
+    ~DATA();
     short getPacketSize();
     short getBlock();
-    string getData();
+    char* getData();
     int getSize();
 };
 
