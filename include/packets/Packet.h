@@ -24,8 +24,7 @@ private:
     short block;
     char* data;
 public:
-    DATA(short packetSize, short block, char* data) :Packet(3), packetSize(packetSize),block(block),data(data){};
-    ~DATA();
+    DATA(short packetSize, short block, char* data);
     short getPacketSize();
     short getBlock();
     char* getData();

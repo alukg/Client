@@ -28,6 +28,8 @@ public:
     Packet* process(Packet &packet);
     virtual ~ConnectionHandler();
 
+    Packet* getLastPacketISent();
+
     // Connect to the remote machine
     bool connect();
 
@@ -55,7 +57,7 @@ public:
     short bytesToShort(char* bytesArr);
     void shortToBytes(short num, char* bytesArr);
 
-    void connectArrays(char *firstArr, int firstLength, char *secondArr, int secondLength, char *connected);
+    void connectArrays(const char *firstArr, int firstLength,const char *secondArr, int secondLength, char *connected);
 
 }; //class ConnectionHandler
 

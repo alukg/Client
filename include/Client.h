@@ -8,7 +8,7 @@ using std::string;
 
 class Client {
 private:
-    static string trim(const string& str);
+    static void trim(string& str);
 public:
     static string checkFunction(string &line);
     static Packet* stringToPacket(string &line);

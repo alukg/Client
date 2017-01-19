@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <boost/thread.hpp>
+#include <fstream>
 #include "Client.h"
 
 int main(int argc, char *argv[]) {
@@ -23,15 +24,17 @@ int main(int argc, char *argv[]) {
         std::getline(std::cin, line);
         string ans = Client::checkFunction(line);
         if (ans.compare("OK") == 0) {
+            Packet* lastPacketISent = connectionHandler.getLastPacketISent();
+            delete lastPacketISent;
             Packet *packet = Client::stringToPacket(line);
             if (!connectionHandler.sendPacket(packet, true)) {
-                std::cout << "Disconnected. Exiting...\n" << std::endl;
+                std::cout << "Disconnected. Exiting..." << std::endl;
                 break;
             }
-            if(packet->getOpCode()==10)
+            if (packet->getOpCode() == 10)
                 break;
         } else
-            std::cout << ans + "\n" << std::endl;
+            std::cout << ans << std::endl;
     }
     serverThread.join();
     return 0;
@@ -45,15 +48,21 @@ string Client::checkFunction(string &line) {
     string file_user_name = "";
     if (functionName.length() < line.length()) {
         file_user_name = line.substr(functionName.length(), line.length());
-        file_user_name = trim(file_user_name);
+        trim(file_user_name);
     }
     if (functionName.compare("RRQ") == 0 || functionName.compare("WRQ") == 0 || functionName.compare("DELRQ") == 0) {
-        if (file_user_name.find("0") != std::string::npos) return "Invalid character: Filename contains 0";
-        else if (file_user_name == "") return "No file name entered.";
-        else return "OK";
+
+        if (file_user_name == "") return "No file name entered.";
+        else {
+            if (functionName.compare("WRQ") == 0) {
+                ifstream fstream(file_user_name);
+                if (!fstream.is_open())
+                    return "Unable to open file";
+            }
+            return "OK";
+        }
     } else if (functionName.compare("LOGRQ") == 0) {
-        if (file_user_name.find("0") != std::string::npos) return "Invalid character: Username contains 0";
-        else if (file_user_name == "") return "No username entered.";
+        if (file_user_name == "") return "No username entered.";
         else return "OK";
     } else if (functionName.compare("DISC") == 0 || functionName.compare("DIRQ") == 0) {
         if (file_user_name == "") return "OK";
@@ -62,13 +71,12 @@ string Client::checkFunction(string &line) {
         return "Wrong function";
 }
 
-string Client::trim(const string &str) {
-    size_t first = str.find_first_not_of(' ');
-    if (string::npos == first) {
-        return str;
+void Client::trim(string &str) {
+    int first = str.find_first_not_of(' ');
+    if (string::npos != first) {
+        int last = str.find_last_not_of(' ');
+        str = str.substr(first, (last - first + 1));
     }
-    size_t last = str.find_last_not_of(' ');
-    return str.substr(first, (last - first + 1));
 }
 
 Packet *Client::stringToPacket(string &line) {
@@ -78,7 +86,7 @@ Packet *Client::stringToPacket(string &line) {
     string file_user_name = "";
     if (functionName.length() < line.length()) {
         file_user_name = line.substr(functionName.length(), line.length());
-        file_user_name = trim(file_user_name);
+        trim(file_user_name);
     }
     if (functionName.compare("RRQ") == 0) {
         return new RRQ(file_user_name);
