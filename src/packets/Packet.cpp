@@ -4,6 +4,8 @@
 
 #include "packets/Packet.h"
 
+Packet::~Packet(){}
+
 short Packet::getOpCode() {
     return this->opCode;
 }

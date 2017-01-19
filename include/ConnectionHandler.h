@@ -17,12 +17,13 @@ private:
     tcp::socket socket_;
     queue<DATA*> dataForSendQueue;
     Packet* lastPacketISent;
-    char* gettingData = nullptr;
+    char* gettingData;
     int gettingDataSize;
     bool shouldTerminate;
     char* readFileBytes(char const* filename, int &arrSize);
     void convertDataToPackets(char *data, int len);
-
+    ConnectionHandler& operator=(const ConnectionHandler& ch);
+    ConnectionHandler(const ConnectionHandler& ch);
 public:
     ConnectionHandler(std::string host, short port);
     Packet* process(Packet &packet);

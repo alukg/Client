@@ -73,7 +73,7 @@ string Client::checkFunction(string &line) {
 
 void Client::trim(string &str) {
     int first = str.find_first_not_of(' ');
-    if (string::npos != first) {
+    if (string::npos != (unsigned)first) {
         int last = str.find_last_not_of(' ');
         str = str.substr(first, (last - first + 1));
     }

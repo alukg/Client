@@ -14,8 +14,9 @@ using std::string;
 
 ConnectionHandler::ConnectionHandler(string host, short port) : host_(host), port_(port), io_service_(),
                                                                 socket_(io_service_), dataForSendQueue(),
-                                                                shouldTerminate(false),
-                                                                lastPacketISent(nullptr) {}
+                                                                lastPacketISent(nullptr),
+                                                                gettingData(nullptr), gettingDataSize(),
+                                                                shouldTerminate(false){}
 
 ConnectionHandler::~ConnectionHandler() {
     delete[] gettingData;
@@ -122,7 +123,7 @@ Packet* ConnectionHandler::getLine() {
                 line.append(1, ch);
             }
             char *result = new char[line.length() - 4];
-            for (int i = 4; i < line.length(); i++) {
+            for (unsigned int i = 4; i < line.length(); i++) {
                 result[i-4] = line[i];
             }
             return new DATA(packetSize, bytesToShort((char *) line.substr(2, 4).c_str()), result);
@@ -211,7 +212,7 @@ void ConnectionHandler::encode(Packet *packet, char *encodedArr) {
 
 Packet *ConnectionHandler::process(Packet &packet) {
     if (packet.getOpCode() == 4) { //ACK
-        ACK ack = (ACK &) packet;
+        ACK& ack = dynamic_cast<ACK&>(packet);
         cout << "ACK " << ack.getBlock() << endl; // Print ACK n
         if (lastPacketISent->getOpCode() == 2) { // WRQ
             WRQ *wrq = (WRQ *) lastPacketISent;
@@ -240,7 +241,7 @@ Packet *ConnectionHandler::process(Packet &packet) {
             shouldTerminate = true;
         }
     } else if (packet.getOpCode() == 3) { // DATA
-        DATA data = (DATA &) packet;
+        DATA& data = dynamic_cast<DATA&>(packet);
         if (data.getBlock() == 1) { // First block
             delete[] gettingData;
             gettingData = nullptr;

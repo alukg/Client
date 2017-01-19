@@ -2,7 +2,7 @@ CFLAGS:=-c -Wall -Weffc++ -g -std=c++11 -Iinclude
 LDFLAGS:=-lboost_system -lboost_locale -lboost_thread
 
 all: Client
-	g++ -o bin/Client bin/ConnectionHandler.o bin/Client.o bin/ACK.o bin/BCAST.o bin/DATA.o bin/DELRQ.o bin/ERROR.o bin/LOGRQ.o bin/Packet.o bin/RRQ.o bin/WRQ.o $(LDFLAGS)
+	g++ -o bin/TFTPclient bin/ConnectionHandler.o bin/Client.o bin/ACK.o bin/BCAST.o bin/DATA.o bin/DELRQ.o bin/ERROR.o bin/LOGRQ.o bin/Packet.o bin/RRQ.o bin/WRQ.o $(LDFLAGS)
 
 Client: bin/ConnectionHandler.o bin/Client.o bin/ACK.o bin/BCAST.o bin/DATA.o bin/DELRQ.o bin/ERROR.o bin/LOGRQ.o bin/Packet.o bin/RRQ.o bin/WRQ.o
 	

@@ -14,6 +14,7 @@ private:
     short opCode;
 public:
     Packet(short opCode) :opCode(opCode){};
+    virtual ~Packet();
     short getOpCode();
     virtual int getSize();
 };
@@ -23,6 +24,9 @@ private:
     short packetSize;
     short block;
     char* data;
+    DATA(const DATA& data);
+    DATA& operator=(const DATA& data);
+
 public:
     DATA(short packetSize, short block, char* data);
     short getPacketSize();
